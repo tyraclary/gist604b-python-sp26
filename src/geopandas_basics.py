@@ -122,12 +122,75 @@ def explore_properties(gdf: gpd.GeoDataFrame) -> Dict[str, Any]:
         >>> print(f"Bounds: {props['bounds']}")
         >>> print(f"Geometry types: {props['geometry_types']}")
     """
-    # TODO: Implement this function
-    # Hints:
-    # - Access gdf.crs for coordinate system
-    # - Use gdf.total_bounds for extent
-    # - Check gdf.geometry.geom_type for geometry types
-    # - Count features with len(gdf)
+    import geopandas as gpd
+import numpy as np
+from typing import Dict, Any
+
+def explore_properties(gdf: gpd.GeoDataFrame) -> Dict[str, Any]:
+    """
+    Analyze and extract key spatial properties from a GeoDataFrame.
+    
+    Provides comprehensive exploration of:
+    - Coordinate Reference System (CRS)
+    - Spatial bounds (extent)
+    - Geometry types present
+    - Feature count and basic statistics
+    
+    Args:
+        gdf: Input GeoDataFrame to explore
+        
+    Returns:
+        Dictionary containing spatial properties:
+        - 'crs': CRS object or None
+        - 'bounds': [minx, miny, maxx, maxy] or [nan, nan, nan, nan] if empty
+        - 'geometry_types': List of unique geometry types
+        - 'feature_count': Number of features
+        - 'columns': List of attribute column names
+        - 'has_valid_geometries': Boolean indicating if all geometries are valid
+        
+    Example:
+        >>> props = explore_properties(gdf)
+        >>> print(f"CRS: {props['crs']}")
+        >>> print(f"Bounds: {props['bounds']}")
+        >>> print(f"Geometry types: {props['geometry_types']}")
+    """
+    properties = {}
+    
+    # Extract CRS (handle empty GeoDataFrames without geometry column)
+    try:
+        properties['crs'] = gdf.crs
+    except AttributeError:
+        # Empty GeoDataFrame without geometry column has no CRS
+        properties['crs'] = None
+    
+    # Extract bounds (total_bounds returns [minx, miny, maxx, maxy])
+    if len(gdf) > 0:
+        bounds = gdf.total_bounds
+        properties['bounds'] = bounds.tolist()
+    else:
+        properties['bounds'] = [np.nan, np.nan, np.nan, np.nan]
+    
+    # Extract geometry types
+    if len(gdf) > 0:
+        geometry_types = gdf.geometry.geom_type.unique().tolist()
+    else:
+        geometry_types = []
+    properties['geometry_types'] = geometry_types
+    
+    # Feature count
+    properties['feature_count'] = len(gdf)
+    
+    # Column information
+    properties['columns'] = gdf.columns.tolist()
+    
+    # Additional useful properties
+    try:
+        properties['has_valid_geometries'] = gdf.geometry.is_valid.all() if len(gdf) > 0 else True
+    except AttributeError:
+        # No geometry column
+        properties['has_valid_geometries'] = True
+    
+    return properties
     raise NotImplementedError("explore_properties not yet implemented")
 
 
@@ -158,13 +221,45 @@ def transform_crs(
         >>> gdf_mercator = transform_crs(gdf, 'EPSG:3857')
         >>> print(f"New CRS: {gdf_mercator.crs}")
     """
-    # TODO: Implement this function
-    # Hints:
-    # - Check if gdf has a CRS defined (gdf.crs)
-    # - Use gdf.to_crs(target_crs) for transformation
-    # - Handle cases where CRS is None
-    # - Validate target_crs is valid
-    # - Return a copy, not modify original
+import geopandas as gpd
+from typing import Union
+
+def transform_crs(
+    gdf: gpd.GeoDataFrame, 
+    target_crs: Union[str, int]
+) -> gpd.GeoDataFrame:
+    """
+    Transform GeoDataFrame to a different coordinate reference system.
+    
+    Handles CRS transformation with proper validation and error handling.
+    Essential for ensuring spatial data alignment and accurate measurements.
+    
+    Args:
+        gdf: Input GeoDataFrame
+        target_crs: Target CRS (e.g., 'EPSG:4326', 'EPSG:3857', or EPSG code as int)
+        
+    Returns:
+        New GeoDataFrame in the target CRS
+        
+    Raises:
+        ValueError: If GeoDataFrame has no CRS or target CRS is invalid
+        
+    Example:
+        >>> # Transform to Web Mercator (EPSG:3857)
+        >>> gdf_mercator = transform_crs(gdf, 'EPSG:3857')
+        >>> print(f"New CRS: {gdf_mercator.crs}")
+    """
+    # Check if input has CRS
+    if gdf.crs is None:
+        raise ValueError("Input GeoDataFrame has no CRS defined. Cannot transform.")
+    
+    # Validate target CRS by trying to transform
+    try:
+        result = gdf.to_crs(target_crs)
+    except Exception as e:
+        raise ValueError(f"Invalid target CRS '{target_crs}': {str(e)}")
+    
+    return result
     raise NotImplementedError("transform_crs not yet implemented")
 
 
