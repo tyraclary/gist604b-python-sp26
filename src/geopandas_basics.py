@@ -608,15 +608,61 @@ def spatial_joins(
         >>> result = spatial_joins(cities, countries, how='left', predicate='within')
         >>> print(f"Joined {len(result)} features")
     """
-    # TODO: Implement this function
-    # Hints:
-    # - Validate both inputs are GeoDataFrames
-    # - Check CRS compatibility
-    # - Use gpd.sjoin() for spatial join
-    # - Handle CRS mismatch by transforming
-    # - Validate result is not empty (for inner joins)
-    raise NotImplementedError("spatial_joins not yet implemented")
+import geopandas as gpd
 
+def spatial_joins(
+    left_gdf: gpd.GeoDataFrame,
+    right_gdf: gpd.GeoDataFrame,
+    how: str = 'inner',
+    predicate: str = 'intersects'
+) -> gpd.GeoDataFrame:
+    """
+    Join two GeoDataFrames based on spatial relationships.
+    
+    Combines attribute data from two spatial datasets based on their
+    spatial relationship (e.g., points within polygons, lines intersecting areas).
+    
+    Args:
+        left_gdf: Left GeoDataFrame (preserved geometries)
+        right_gdf: Right GeoDataFrame (attributes joined)
+        how: Type of join ('inner', 'left', 'right')
+        predicate: Spatial predicate ('intersects', 'contains', 'within')
+        
+    Returns:
+        Joined GeoDataFrame with combined attributes
+        
+    Raises:
+        ValueError: If inputs are invalid or CRS incompatible
+        
+    Example:
+        >>> # Join cities with their countries
+        >>> result = spatial_joins(cities, countries, how='left', predicate='within')
+        >>> print(f"Joined {len(result)} features")
+    """
+    # Validate inputs
+    if not isinstance(left_gdf, gpd.GeoDataFrame) or not isinstance(right_gdf, gpd.GeoDataFrame):
+        raise ValueError("Both inputs must be GeoDataFrames")
+    
+    # Check CRS compatibility
+    if left_gdf.crs != right_gdf.crs:
+        raise ValueError(
+            f"CRS mismatch: left has {left_gdf.crs}, right has {right_gdf.crs}. "
+            "Transform to same CRS before joining."
+        )
+    
+    # Validate parameters
+    valid_how = ['inner', 'left', 'right']
+    if how not in valid_how:
+        raise ValueError(f"Invalid 'how' parameter '{how}'. Must be one of: {', '.join(valid_how)}")
+    
+    valid_predicates = ['intersects', 'contains', 'within']
+    if predicate not in valid_predicates:
+        raise ValueError(f"Invalid 'predicate' parameter '{predicate}'. Must be one of: {', '.join(valid_predicates)}")
+    
+    # Perform spatial join
+    result = gpd.sjoin(left_gdf, right_gdf, how=how, predicate=predicate)
+    
+    return result
 
 # Function 7: Overlay and Visualize
 
