@@ -50,13 +50,46 @@ def load_spatial_data(file_path: Union[str, Path], **kwargs) -> gpd.GeoDataFrame
         >>> gdf = load_spatial_data('data/cities.geojson')
         >>> print(f"Loaded {len(gdf)} features")
     """
-    # TODO: Implement this function
-    # Hints:
-    # - Convert file_path to Path object
-    # - Check if file exists
-    # - Use gpd.read_file() to load data
-    # - Handle different file formats appropriately
-    # - Validate the loaded data is not empty
+from typing import Union
+import geopandas as gpd
+from pathlib import Path
+
+def load_spatial_data(file_path: Union[str, Path], **kwargs) -> gpd.GeoDataFrame:
+    """
+    Load spatial data from various vector file formats.
+    
+    Supports GeoJSON, Shapefile, GeoPackage, and other formats readable by GeoPandas.
+    Professional implementation with comprehensive error handling.
+    
+    Args:
+        file_path: Path to the spatial data file (string or Path object)
+        **kwargs: Additional arguments to pass to gpd.read_file()
+        
+    Returns:
+        GeoDataFrame containing the loaded spatial data
+        
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+        ValueError: If the file format is invalid or cannot be read
+        
+    Example:
+        >>> gdf = load_spatial_data('data/cities.geojson')
+        >>> print(f"Loaded {len(gdf)} features")
+    """
+    # Convert to Path object for consistent handling
+    file_path = Path(file_path)
+    
+    # Check if file exists
+    if not file_path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+    
+    # Try to load the spatial data
+    try:
+        gdf = gpd.read_file(file_path, **kwargs)
+    except Exception as e:
+        raise ValueError(f"Cannot read spatial data from {file_path}: {str(e)}")
+    
+    return gdf
     raise NotImplementedError("load_spatial_data not yet implemented")
 
 
